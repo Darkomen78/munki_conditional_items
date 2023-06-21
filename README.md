@@ -1,5 +1,4 @@
 # Munki Conditional Items
-Useful custom conditional items for Munki
 
 Offcial Munki documentation about custom conditions : https://github.com/munki/munki/wiki/Conditional-Items#admin-provided-conditions
 
@@ -9,7 +8,7 @@ After a standard Munki check, you can look for the 'Conditions' dictionary in /L
 
 ## Examples - manifest side
 
-# With the `ws1_usrgroup` script you can add this code in the site_default manifest to deploy a special manifest for a specific WS1 UEM group only.
+### With the `ws1_usrgroup` script you can add this code in the site_default manifest to deploy a special manifest for a specific WS1 UEM group only.
 
 ```
 <key>conditional_items</key>
@@ -25,7 +24,7 @@ After a standard Munki check, you can look for the 'Conditions' dictionary in /L
 	</array>
 ```
 	
-# For the `test_file`script you can add this code in any manifest to deploy two special packages only on client where "anyfile" exist.
+### For the `test_file`script you can add this code in any manifest to deploy two special packages only on client where "anyfile" exist.
 	
 ```
 <key>conditional_items</key>
