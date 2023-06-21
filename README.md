@@ -25,7 +25,7 @@ You can add this code in the site_default manifest to deploy a special manifest 
 	</array>
 ```
 	
-### For the `test_file`script
+### With the `test_file` script
 You can add this code in any manifest to deploy two special packages only on client where "anyfile" exist.
 	
 ```
@@ -40,4 +40,5 @@ You can add this code in any manifest to deploy two special packages only on cli
 				<string>special install 2</string>
 			</array>
 		</dict>
+	</array>
 ```
