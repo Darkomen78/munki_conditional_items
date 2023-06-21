@@ -1,0 +1,64 @@
+#!/bin/sh
+
+# Creator : Sylvain La Gravière
+# Infos   : https://dev.infernobox.com
+# Version : 06-2023
+
+# Munki WS1 smart groups conditional items
+# Based on https://github.com/vmware-samples/euc-samples/tree/master/UEM-Samples/Scripts/macOS
+
+
+# Read the location of the ManagedInstallDir from ManagedInstall.plist
+managedinstalldir="$(defaults read /Library/Preferences/ManagedInstalls ManagedInstallDir)"
+plist_loc="$managedinstalldir/ConditionalItems"
+
+# Get name of current user
+currentLocalUser=$(ls -la /dev/console | awk '{print $3}')
+
+# REST API FQDN
+uemAPI="asXXX.awmdm.com"
+ 
+# Authorization
+uemAuth="ZmXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX="
+ 
+# Tenant code
+uemCode="0VXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX="
+
+macSerial=`ioreg -l | grep IOPlatformSerialNumber | awk '{print $4}' | sed "s/\"//g"`
+
+declare -a curlHeaders2=('-H' "Content-Type: application/json" '-H' "Accept: application/json;version=2" '-H' "Authorization: Basic $uemAuth" '-H' "aw-tenant-code: $uemCode")
+
+devIdLong=`curl -s -X GET "${curlHeaders2[@]}" "https://$uemAPI/API/mdm/devices/?searchBy=Serialnumber&id=$macSerial"`
+# Keep 6 char, 54 char from the end
+devId=`echo ${devIdLong: -54: 6}`
+uemUser=`curl -s -X GET "${curlHeaders2[@]}" "https://$uemAPI/API/mdm/devices/$devId/user"`
+uemUser1=`echo $uemUser | awk -F',' '{print $1}'`
+uemUser2=`echo $uemUser1 | awk -F':' '{print $3}'`
+uemUser3=`echo $uemUser2 | tr -d '"'`
+
+devSmartGLong=`curl -s -X GET "${curlHeaders2[@]}" "https://$uemAPI/API/mdm/devices/$devId/smartgroups"`
+devSmartG=$(echo "$devSmartGLong" | sed 's/},"SmartGroupName":"/" "/g' | sed 's/"},{"SmartGroupId":{"Value":/" "/g' | sed 's/{"SmartGroup":\[{"SmartGroupId":{"Value":/"/g' | tr -d '}]' )
+
+#Get groups of the current user
+#WS1GROUPS=$()
+
+#echo "device ID Long = $devIdLong"
+echo "Current device ID = $devId"
+echo "-==============-"
+#echo "UEM User long = $uemUser"
+echo "Current UEM User = $uemUser3"
+echo "-==============-"
+#echo "Device Smart Groups = $devSmartGLong"
+echo "Device Smart Groups = $devSmartG"
+
+Write condition ws1user
+defaults write "$plist_loc" "ws1user" -string "$uemUser3"
+Write condition ws1_devicesmartgroup
+defaults write "$plist_loc" "ws1_devicesmartgroup" -string "$devSmartG"
+
+plutil -convert xml1 "$plist_loc".plist
+
+exit 0
+
+
+

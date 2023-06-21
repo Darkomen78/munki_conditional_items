@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# Creator : Sylvain La Gravière
+# Infos   : https://dev.infernobox.com
+# Version : 06-2023
+
+
+# Wanted File
+TESTFILEPATH=/anywhere/
+TESTFILENAME=anyfile
+
+# Read the location of the ManagedInstallDir from ManagedInstall.plist
+managedinstalldir="$(defaults read /Library/Preferences/ManagedInstalls ManagedInstallDir)"
+plist_loc="$managedinstalldir/ConditionalItems"
+
+if [ -f "$TESTFILEPATH$TESTFILENAME" ]; then
+defaults write "$plist_loc" "$TESTFILENAME" -string "true"
+else
+defaults write "$plist_loc" "$TESTFILENAME" -string "false"
+fi
+
+plutil -convert xml1 "$plist_loc".plist
+
+exit 0
