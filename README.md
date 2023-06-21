@@ -3,12 +3,13 @@
 Offcial Munki documentation about custom conditions : https://github.com/munki/munki/wiki/Conditional-Items#admin-provided-conditions
 
 ## Usage - client side
-You have to put theses files in __/usr/local/munki/conditions__ (create the conditions folder if is not there) on the Munki client.<br/>
+You have to put theses files (not folders !) in __/usr/local/munki/conditions__ (create the conditions folder if is not there) on the Munki client.<br/>
 After a standard Munki check, you can look for the 'Conditions' dictionary in /Library/Managed Installs/ManagedInstallReport.plist
 
 ## Examples - manifest side
 
-### With the `ws1_usrgroup` script you can add this code in the site_default manifest to deploy a special manifest for a specific WS1 UEM group only.
+### With the `ws1_smartgroup` script
+You can add this code in the site_default manifest to deploy a special manifest for a specific WS1 UEM group only.
 
 ```
 <key>conditional_items</key>
@@ -24,7 +25,8 @@ After a standard Munki check, you can look for the 'Conditions' dictionary in /L
 	</array>
 ```
 	
-### For the `test_file`script you can add this code in any manifest to deploy two special packages only on client where "anyfile" exist.
+### For the `test_file`script
+You can add this code in any manifest to deploy two special packages only on client where "anyfile" exist.
 	
 ```
 <key>conditional_items</key>
