@@ -1,6 +1,6 @@
 # Munki Conditional Items
 
-Offcial Munki documentation about custom conditions : https://github.com/munki/munki/wiki/Conditional-Items#admin-provided-conditions
+Official Munki documentation about custom conditions : https://github.com/munki/munki/wiki/Conditional-Items#admin-provided-conditions
 
 ## Usage - client side
 You have to put theses files (not folders !) in __/usr/local/munki/conditions__ (create the conditions folder if is not there) on the Munki client.<br/>
