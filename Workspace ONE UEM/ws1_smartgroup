@@ -2,10 +2,11 @@
 
 # Creator : Sylvain La Gravière
 # Infos   : https://dev.infernobox.com
-# Version : 06-2023
+# Version : 09-2023
 
 # Munki WS1 smart groups conditional items
 # Based on https://github.com/vmware-samples/euc-samples/tree/master/UEM-Samples/Scripts/macOS
+# Check for OAuth 2.0 Support https://docs.vmware.com/en/VMware-Workspace-ONE-UEM/services/UEM_ConsoleBasics/GUID-UsingUEMFunctionalityWithRESTAPI.html
 
 
 # Read the location of the ManagedInstallDir from ManagedInstall.plist
@@ -16,49 +17,50 @@ plist_loc="$managedinstalldir/ConditionalItems"
 currentLocalUser=$(ls -la /dev/console | awk '{print $3}')
 
 # REST API FQDN
-uemAPI="asXXX.awmdm.com"
- 
-# Authorization
-uemAuth="ZmXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX="
- 
-# Tenant code
-uemCode="0VXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX="
+uemAPI="aXXXX.awmdm.com"
 
+# Token URLs for OAuth 2.0 Support
+uemTokenURL="https://XXXX.uemauth.vmwservices.com/connect/token"
+
+# OAuth Client to Use for API Commands
+oauth_client_ID="aXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+oauth_client_secret="3XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+
+# Prepare headers for POST
+declare -a curlHeaders=('-H' "Content-Type: multipart/form-data" '--form' "grant_type=client_credentials" '--form' "client_id=$oauth_client_ID" '--form' "client_secret=$oauth_client_secret")
+# Get UEM Acccess Token
+uemAuthTokenFull=`curl -s --request POST "${curlHeaders[@]}" "$uemTokenURL"`
+uemAuthToken=$(echo $uemAuthTokenFull | grep -o '"access_token":"[^"]*' | awk -F ':"' '{print $2}')
+
+# Get Mac serial number
 macSerial=`ioreg -l | grep IOPlatformSerialNumber | awk '{print $4}' | sed "s/\"//g"`
 
-declare -a curlHeaders2=('-H' "Content-Type: application/json" '-H' "Accept: application/json;version=2" '-H' "Authorization: Basic $uemAuth" '-H' "aw-tenant-code: $uemCode")
+# Prepare headers for GET
+declare -a curlHeaders2=('-H' "Content-Type: application/json" '-H' "Accept: application/json;version=2" '-H' "Authorization: Bearer $uemAuthToken")
 
+# Get DeviceID from Serial Number
 devIdLong=`curl -s -X GET "${curlHeaders2[@]}" "https://$uemAPI/API/mdm/devices/?searchBy=Serialnumber&id=$macSerial"`
 # Keep 6 char, 54 char from the end
 devId=`echo ${devIdLong: -54: 6}`
+
+# Get User's informations
 uemUser=`curl -s -X GET "${curlHeaders2[@]}" "https://$uemAPI/API/mdm/devices/$devId/user"`
 uemUser1=`echo $uemUser | awk -F',' '{print $1}'`
 uemUser2=`echo $uemUser1 | awk -F':' '{print $3}'`
 uemUser3=`echo $uemUser2 | tr -d '"'`
 
+# Get device's smart groups
 devSmartGLong=`curl -s -X GET "${curlHeaders2[@]}" "https://$uemAPI/API/mdm/devices/$devId/smartgroups"`
 devSmartG=$(echo "$devSmartGLong" | sed 's/},"SmartGroupName":"/" "/g' | sed 's/"},{"SmartGroupId":{"Value":/" "/g' | sed 's/{"SmartGroup":\[{"SmartGroupId":{"Value":/"/g' | tr -d '}]' )
 
-#Get groups of the current user
-#WS1GROUPS=$()
-
-#echo "device ID Long = $devIdLong"
-echo "Current device ID = $devId"
-echo "-==============-"
-#echo "UEM User long = $uemUser"
 echo "Current UEM User = $uemUser3"
-echo "-==============-"
-#echo "Device Smart Groups = $devSmartGLong"
 echo "Device Smart Groups = $devSmartG"
 
-Write condition ws1user
+#Write condition ws1user
 defaults write "$plist_loc" "ws1user" -string "$uemUser3"
-Write condition ws1_devicesmartgroup
+#Write condition ws1_devicesmartgroup
 defaults write "$plist_loc" "ws1_devicesmartgroup" -string "$devSmartG"
 
 plutil -convert xml1 "$plist_loc".plist
 
 exit 0
-
-
-
